@@ -31,7 +31,7 @@ cloudinary.config({
     api_key: process.env.CLOUD_API_KEY,
     api_secret: process.env.CLOUD_SECRET_KEY,
   });
-mongoose.connect(process.env.DBURI)
+mongoose.connect(process.env.DBURI || '')
 
 app.post('/register', async (req, res)=>{
     const {email, password} = req.body;
