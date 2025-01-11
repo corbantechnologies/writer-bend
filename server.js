@@ -78,6 +78,26 @@ app.post('/writer/admin/work', async (req, res) =>{
     }
 })
 
+app.put('/writer/admin/work/:id', async (req, res) => {
+    const { id } = req.params;
+    const { title, content, isCourse, imageUrl } = req.body;
+
+    try {
+        const updatedWork = await Work.findByIdAndUpdate(
+            id,
+            { title, content, isCourse, imageUrl },
+            { new: true}
+        );
+
+        if (!updatedWork) {
+            return res.status(404).json({ message: 'Work not found' });
+        }
+        res.status(200).json(updatedWork);
+    } catch (error) {
+        res.status(400).json(error); 
+    }
+});
+
 app.get('/writer/admin', async (req, res) => {
     try {
         const works = await Work.find({});
