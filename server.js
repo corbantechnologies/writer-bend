@@ -64,11 +64,12 @@ app.post('/login', async (req, res)=>{
 })
 
 app.post('/writer/admin/work', async (req, res) =>{
-    let {title, content, imageUrl } = req.body;
+    let {title, content, isCourse, imageUrl } = req.body;
     try {
         const work = await Work.create({
             title,
             content,
+            isCourse,
             imageUrl
         });
         res.status(200).json(work);

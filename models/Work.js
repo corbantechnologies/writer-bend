@@ -7,6 +7,10 @@ const WorkSchema = new Schema({
   content: {
     type: String,
   },
+  isCourse: {
+    type: Boolean,
+    required: true,
+  },
   imageUrl: {
     public_id: { type: String },
     secure_url: { type: String },
