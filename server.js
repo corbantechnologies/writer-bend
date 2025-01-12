@@ -53,7 +53,8 @@ app.post('/login', async (req, res)=>{
         if(passOk){
             jwt.sign({email, userId: userDoc._id}, secret, {}, (err,token)=>{
                 if(err) throw err;
-                res.cookie('token', token, { httpOnly: true, secure: true }).json('ok');
+                // res.cookie('token', token, { httpOnly: true, secure: true }).json('ok');
+                res.cookie('token', token).json('ok');
             })
         }else{
             res.status(400).json('Wrong credentials')
@@ -65,37 +66,55 @@ app.post('/login', async (req, res)=>{
 
 app.post('/writer/admin/work', async (req, res) =>{
     let {title, content, isCourse, imageUrl } = req.body;
-    try {
-        const work = await Work.create({
-            title,
-            content,
-            isCourse,
-            imageUrl
-        });
-        res.status(200).json(work);
-    } catch (error) {
-        res.status(400).json(error)
+    const {token} = req.cookies;
+    if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
     }
+    jwt.verify(token, secret, {}, async(err, info)=>{
+        if (err) {
+            return res.status(403).json({ error: 'Invalid token' });
+        }
+        try {
+            const work = await Work.create({
+                title,
+                content,
+                isCourse,
+                imageUrl
+            });
+            res.status(200).json(work);
+        } catch (error) {
+            res.status(400).json(error)
+        }
+    })
 })
 
-app.put('/writer/admin/work/:id', async (req, res) => {
+app.put('/writer/admin/update/work/:id', async (req, res) => {
     const { id } = req.params;
     const { title, content, isCourse, imageUrl } = req.body;
-
-    try {
-        const updatedWork = await Work.findByIdAndUpdate(
-            id,
-            { title, content, isCourse, imageUrl },
-            { new: true}
-        );
-
-        if (!updatedWork) {
-            return res.status(404).json({ message: 'Work not found' });
-        }
-        res.status(200).json(updatedWork);
-    } catch (error) {
-        res.status(400).json(error); 
+    const {token} = req.cookies;
+    if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
     }
+
+    jwt.verify(token, secret, {}, async(err, info)=>{
+        if (err) {
+            return res.status(403).json({ error: 'Invalid token' });
+        }
+        try {
+            const updatedWork = await Work.findByIdAndUpdate(
+                id,
+                { title, content, isCourse, imageUrl },
+                { new: true}
+            );
+    
+            if (!updatedWork) {
+                return res.status(404).json({ message: 'Work not found' });
+            }
+            res.status(200).json(updatedWork);
+        } catch (error) {
+            res.status(400).json(error); 
+        }
+    })
 });
 
 app.get('/writer/admin', async (req, res) => {
@@ -116,6 +135,28 @@ app.get('/profile', async (req, res) => {
         res.json('ok');
     })
 })
+
+app.delete('/writer/admin/delete/work/:id', async(req, res) => {
+    const { id } = req.params;
+    const {token} = req.cookies;
+    if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+    jwt.verify(token, secret, {}, async(err, info)=>{
+        if (err) {
+            return res.status(403).json({ error: 'Invalid token' });
+        }
+        try {
+            const deletedWork = await Work.findByIdAndDelete(id);
+            if (!deletedWork) {
+                return res.status(404).json({ message: 'Work 2 not found' });
+            }
+            res.status(200).json({ message: 'Work deleted successfully' });
+        } catch (error) {
+            res.status(400).json(error); 
+        }
+    })
+});
 
 app.post('/logout', (req,res)=>{
     res.cookie('token','').json('ok')
