@@ -53,7 +53,7 @@ app.post('/login', async (req, res)=>{
         if(passOk){
             jwt.sign({email, userId: userDoc._id}, secret, {}, (err,token)=>{
                 if(err) throw err;
-                res.cookie('token', token).json('ok');
+                res.cookie('token', token, { httpOnly: true, secure: true }).json('ok');
             })
         }else{
             res.status(400).json('Wrong credentials')
@@ -110,8 +110,10 @@ app.get('/writer/admin', async (req, res) => {
 app.get('/profile', async (req, res) => {
     const {token} = req.cookies;
     jwt.verify(token, secret, {}, (err, info)=>{
-        if(err) throw err;
-        res.json(info)
+        if (err) {
+            return res.status(403).json({ error: 'Invalid token' });
+        }
+        res.json('ok');
     })
 })
 
